@@ -1,8 +1,9 @@
 import { StatusBar } from "expo-status-bar";
-import React, { useState } from "react";
+import React, { useLayoutEffect, useState } from "react";
 import { KeyboardAvoidingView } from "react-native";
-import { StyleSheet, Text, View } from "react-native";
-import { Input } from "react-native-elements";
+import { StyleSheet, View } from "react-native";
+import { Button, Input, Text } from "react-native-elements";
+import { auth } from "../firebase";
 
 const RegisterScreen = ({ navigation }) => {
   const [fullName, setFullName] = useState("");
@@ -10,7 +11,25 @@ const RegisterScreen = ({ navigation }) => {
   const [password, setPassword] = useState("");
   const [imageUrl, setImageUrl] = useState("");
 
-  const register = {};
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerBackTitle: "Back to Login"
+    });
+  }, [navigation]);
+
+  const register = () => {
+    auth
+      .createUserWithEmailAndPassword(email, password)
+      .then(authUser => {
+        authUser.user.update({
+          displayName: name,
+          photoURL:
+            imageUrl ||
+            "https://cencup.com/wp-content/uploads/2019/07/avatar-placeholder.png"
+        });
+      })
+      .catch(error => alert(error.message));
+  };
 
   return (
     <KeyboardAvoidingView behavior="padding" style={styles.container}>
@@ -48,6 +67,12 @@ const RegisterScreen = ({ navigation }) => {
           onSubmitEditing={register}
         />
       </View>
+      <Button
+        containerStyle={styles.button}
+        raised
+        onPress={register}
+        title="Register"
+      />
     </KeyboardAvoidingView>
   );
 };
@@ -55,6 +80,16 @@ const RegisterScreen = ({ navigation }) => {
 export default RegisterScreen;
 
 const styles = StyleSheet.create({
-  container: {},
-  inputContainer: {}
+  container: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 10,
+    backgroundColor: "white"
+  },
+  button: {
+    width: 250,
+    marginTop: 10
+  },
+  inputContainer: { width: 300 }
 });
