@@ -1,7 +1,20 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { ListItem, Avatar } from "react-native-elements";
 const CustomListItem = ({ id, chatName, enterChat }) => {
+  const [chatMessages, setChatMessages] = useState([]);
+
+  useEffect(() => {
+    const unsubscribe = db
+      .collection("chats")
+      .doc(id)
+      .collection("messages")
+      .orderBy("timestamp", "desc")
+      .onSnapshot(snapshot =>
+        setChatMessages(snapshot.docs.map(doc => doc.data()))
+      );
+    return unsubscribe;
+  });
   return (
     <ListItem
       onPress={() => enterChat(id, chatName, enterChat)}
@@ -12,6 +25,7 @@ const CustomListItem = ({ id, chatName, enterChat }) => {
         rounded
         source={{
           uri:
+            chatMessages?.[0]?.photoURL ||
             "https://cencup.com/wp-content/uploads/2019/07/avatar-placeholder.png"
         }}
       />
@@ -20,9 +34,7 @@ const CustomListItem = ({ id, chatName, enterChat }) => {
           {chatName}
         </ListItem.Title>
         <ListItem.Subtitle numberOfLines={1} ellipsizeMode="tail">
-          This is a test subtitle with a long line.This is a test subtitle with
-          a long line. This is a test subtitle with a long line.This is a test
-          subtitle with a long line.
+          {chatMessages?.[0]?.displayName}:{chatMessages?.[0].message}
         </ListItem.Subtitle>
       </ListItem.Content>
     </ListItem>
